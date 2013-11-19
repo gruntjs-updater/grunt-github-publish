@@ -1,0 +1,25 @@
+{
+    "browser": true,
+    "eqnull": true,
+
+    "quotmark": "single",
+    "indent": 2,
+    "eqeqeq": true,
+    "undef": true,
+    "noarg": true,
+    "noempty": true,
+    "trailing": true,
+    "maxdepth": 4,
+    "unused": true,
+    "immed": true,
+    "latedef": true,
+    "nonew": true,
+    "lastsemic": true,
+
+    "globals": {
+        "module": true,
+        "require": true,
+        "define": true,
+        "process": true
+    }
+}
