@@ -21,36 +21,40 @@ module.exports = function(grunt) {
   'use strict';
 
   grunt.registerTask('github_publish', 'Helps to publish new repo versions on github', function(version) {
+    var pkg = grunt.file.readJSON('package.json');
+
+    pkg.version = version;
+
     var options = this.options({
       src: ['src/*'],
       dest: 'dist/',
       bower: 'bower_components/'
     });
 
-    var updateBranches = grunt.template.process([
+    var updateBranches = [
       'git add -A',
       // commit all changes
-      'git commit -am "version <%= pkg.version %>"',
+      'git commit -am "version ' + version + '"',
       // checkout pages branch
       'git checkout gh-pages',
       // merge with master
       'git merge master'
-    ].join(' && '), options);
+    ].join(' && ');
 
-    var finishBranches = grunt.template.process([
+    var finishBranches = [
       // add any files that may have been created
       'git add -A',
       // commit all changes
-      'git commit -am "version <%= pkg.version %>"',
+      'git commit -am "version ' + version + '"',
       // checkout pages branch
       'git checkout master',
       // update version tag
-      'git tag -af v<%= pkg.version %> -m "version <%= pkg.version %>"',
+      'git tag -af v' + version + ' -m "version ' + version + '"',
       // push file changed
       'git push origin --all',
       // push new tag
-      'git push origin v<%= pkg.version %>'
-    ].join(' && '), options);
+      'git push origin v' + version
+    ].join(' && ');
 
     grunt.registerTask('updateJSON', function(filename) {
       var json = grunt.file.readJSON(filename);
@@ -64,32 +68,26 @@ module.exports = function(grunt) {
       grunt.file.expandMapping(options.src, options.dest).forEach(function(filePair) {
         grunt.file.copy(filePair.src, filePair.dest, {
           encoding: grunt.file.defaultEncoding,
-          process: function(content) {
+          process: function(content, filename) {
             return grunt.template.process(
               '/**\n' +
-              ' * @file ' + filePair.dest.split('/').pop() + '\n' +
+              ' * @file ' + filename + '\n' +
               ' * @version <%= pkg.version %> <%= grunt.template.today("isoDateTime") %>\n' +
               ' * @overview <%= pkg.description %>\n' +
               ' * @copyright <%= pkg.author %> <%= grunt.template.today("yyyy") %>\n' +
               ' * @license <%= pkg.license %>\n' +
               ' * @see <%= pkg.repository.url %>\n' +
-              ' */\n', options
-              ) + content;
+              ' */\n') + content;
           }
         });
       });
     });
 
     grunt.registerTask('runShell', function(cmd) {
-      grunt.verbose.writeln(cmd);
+      var cp = exec(cmd, function(err) {
+        if (err) grunt.warn(err);
 
-      var cb = this.async(),
-      cp = exec(cmd, function(err) {
-        if (err && options.failOnError) {
-          grunt.warn(err);
-        }
-
-        cb();
+        this.async();
       }.bind(this));
 
       cp.stdout.pipe(process.stdout);
@@ -97,7 +95,9 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('cleanBower', function() {
-      grunt.file.delete(options.bower);
+      if (grunt.file.exists(options.bower)) {
+        grunt.file.delete(options.bower);
+      }
     });
 
     grunt.task.run([
@@ -109,7 +109,7 @@ module.exports = function(grunt) {
       'cleanBower',
       'runShell:bower install',
       'runShell:' + finishBranches,
-      'shell:bower'
+      'runShell:bower install'
     ]);
   });
 };
