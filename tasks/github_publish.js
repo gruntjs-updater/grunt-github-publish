@@ -21,10 +21,6 @@ module.exports = function(grunt) {
   'use strict';
 
   grunt.registerTask('github_publish', 'Helps to publish new repo versions on github', function(version) {
-    var pkg = grunt.file.readJSON('package.json');
-
-    pkg.version = version;
-
     var options = this.options({
       src: ['src/*'],
       dest: 'dist/',
@@ -65,14 +61,20 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('processSources', function() {
-      grunt.file.expandMapping(options.src, options.dest).forEach(function(filePair) {
+      if (grunt.file.exists(options.dest)) {
+        grunt.file.delete(options.dest);
+      }
+
+      grunt.file.mkdir(options.dest);
+
+      grunt.file.expandMapping(options.src, options.dest, {flatten: true}).forEach(function(filePair) {
         grunt.file.copy(filePair.src, filePair.dest, {
           encoding: grunt.file.defaultEncoding,
           process: function(content, filename) {
             return grunt.template.process(
               '/**\n' +
               ' * @file ' + filename + '\n' +
-              ' * @version <%= pkg.version %> <%= grunt.template.today("isoDateTime") %>\n' +
+              ' * @version ' + version + ' <%= grunt.template.today("isoDateTime") %>\n' +
               ' * @overview <%= pkg.description %>\n' +
               ' * @copyright <%= pkg.author %> <%= grunt.template.today("yyyy") %>\n' +
               ' * @license <%= pkg.license %>\n' +
