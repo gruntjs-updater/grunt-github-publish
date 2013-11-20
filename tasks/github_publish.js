@@ -34,7 +34,7 @@ module.exports = function(grunt) {
       // checkout pages branch
       'git checkout gh-pages',
       // merge with master
-      'git merge master'
+      'git merge master --no-commit'
     ].join(' && ');
 
     var finishBranches = [
@@ -86,32 +86,24 @@ module.exports = function(grunt) {
     });
 
     grunt.registerTask('runShell', function(cmd) {
+      var cb = this.async();
       var cp = exec(cmd, function(err) {
         if (err) grunt.warn(err);
 
-        this.async();
+        cb();
       }.bind(this));
 
       cp.stdout.pipe(process.stdout);
       cp.stderr.pipe(process.stderr);
     });
 
-    grunt.registerTask('cleanBower', function() {
-      if (grunt.file.exists(options.bower)) {
-        grunt.file.delete(options.bower);
-      }
-    });
-
     grunt.task.run([
       'updateJSON:package.json',
       'updateJSON:bower.json',
       'processSources',
-      'cleanBower',
       'runShell:' + updateBranches,
-      'cleanBower',
-      'runShell:bower install',
-      'runShell:' + finishBranches,
-      'runShell:bower install'
+      'runShell:bower update',
+      'runShell:' + finishBranches
     ]);
   });
 };
