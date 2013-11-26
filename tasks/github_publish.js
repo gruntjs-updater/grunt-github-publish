@@ -28,6 +28,7 @@ module.exports = function(grunt) {
     });
 
     var updateBranches = [
+      // add any new files that were created
       'git add -A',
       // commit all changes
       'git commit -am "version ' + version + '"',
@@ -73,7 +74,7 @@ module.exports = function(grunt) {
           process: function(content, filename) {
             return grunt.template.process(
               '/**\n' +
-              ' * @file ' + filename + '\n' +
+              ' * @file ' + filename.split(/[\\\/]/).pop() + '\n' +
               ' * @version ' + version + ' <%= grunt.template.today("isoDateTime") %>\n' +
               ' * @overview <%= pkg.description %>\n' +
               ' * @copyright <%= pkg.author %> <%= grunt.template.today("yyyy") %>\n' +
