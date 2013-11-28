@@ -41,7 +41,7 @@ module.exports = function(grunt) {
       // push file changed
       'git push origin --all',
       // push new tag
-      'git push origin --tags'
+      'git push origin v' + version
     ].join(' && ');
 
     function updateJSON(filename) {
