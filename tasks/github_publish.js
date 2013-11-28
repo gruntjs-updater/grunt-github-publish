@@ -50,7 +50,7 @@ module.exports = function(grunt) {
       // push file changed
       'git push origin --all',
       // push new tag
-      'git push origin v' + version
+      'git push origin --tags'
     ].join(' && ');
 
     grunt.registerTask('updateJSON', function(filename) {
@@ -74,7 +74,7 @@ module.exports = function(grunt) {
           process: function(content, filename) {
             return grunt.template.process(
               '/**\n' +
-              ' * @file ' + filename.split(/[\\\/]/).pop() + '\n' +
+              ' * @file ' + filename + '\n' +
               ' * @version ' + version + ' <%= grunt.template.today("isoDateTime") %>\n' +
               ' * @overview <%= pkg.description %>\n' +
               ' * @copyright <%= pkg.author %> <%= grunt.template.today("yyyy") %>\n' +
