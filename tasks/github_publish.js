@@ -53,38 +53,13 @@ module.exports = function(grunt) {
       'git push origin --tags'
     ].join(' && ');
 
-    grunt.registerTask('updateJSON', function(filename) {
+    function updateJSON(filename) {
       var json = grunt.file.readJSON(filename);
 
       json.version = version;
 
       grunt.file.write(filename, JSON.stringify(json, null, 2));
-    });
-
-    grunt.registerTask('processSources', function() {
-      if (grunt.file.exists(options.dest)) {
-        grunt.file.delete(options.dest);
-      }
-
-      grunt.file.mkdir(options.dest);
-
-      grunt.file.expandMapping(options.src, options.dest, {flatten: true}).forEach(function(filePair) {
-        grunt.file.copy(filePair.src, filePair.dest, {
-          encoding: grunt.file.defaultEncoding,
-          process: function(content, filename) {
-            return grunt.template.process(
-              '/**\n' +
-              ' * @file ' + filename + '\n' +
-              ' * @version ' + version + ' <%= grunt.template.today("isoDateTime") %>\n' +
-              ' * @overview <%= pkg.description %>\n' +
-              ' * @copyright <%= pkg.author %> <%= grunt.template.today("yyyy") %>\n' +
-              ' * @license <%= pkg.license %>\n' +
-              ' * @see <%= pkg.repository.url %>\n' +
-              ' */\n') + content;
-          }
-        });
-      });
-    });
+    }
 
     grunt.registerTask('runShell', function(cmd) {
       var cb = this.async();
@@ -98,10 +73,35 @@ module.exports = function(grunt) {
       cp.stderr.pipe(process.stderr);
     });
 
+    // 1. update package.json and bower.json
+    updateJSON('package.json');
+    updateJSON('bower.json');
+
+    // 2. include banner into source files
+    if (grunt.file.exists(options.dest)) {
+      grunt.file.delete(options.dest);
+    }
+
+    grunt.file.mkdir(options.dest);
+
+    grunt.file.expandMapping(options.src, options.dest, {flatten: true}).forEach(function(filePair) {
+      grunt.file.copy(filePair.src, filePair.dest, {
+        encoding: grunt.file.defaultEncoding,
+        process: function(content, filename) {
+          return grunt.template.process(
+            '/**\n' +
+            ' * @file ' + filename + '\n' +
+            ' * @version ' + version + ' <%= grunt.template.today("isoDateTime") %>\n' +
+            ' * @overview <%= pkg.description %>\n' +
+            ' * @copyright <%= pkg.author %> <%= grunt.template.today("yyyy") %>\n' +
+            ' * @license <%= pkg.license %>\n' +
+            ' * @see <%= pkg.repository.url %>\n' +
+            ' */\n') + content;
+        }
+      });
+    });
+
     grunt.task.run([
-      'updateJSON:package.json',
-      'updateJSON:bower.json',
-      'processSources',
       'runShell:' + updateBranches,
       'runShell:bower update',
       'runShell:' + finishBranches
