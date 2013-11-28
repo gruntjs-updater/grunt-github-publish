@@ -1,7 +1,7 @@
 {
   "name": "grunt-github-publish",
   "description": "Helps to publish new repo versions on github",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "homepage": "https://github.com/chemerisuk/grunt-github-publish",
   "author": {
     "name": "Maksim Chemerisuk",

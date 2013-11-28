@@ -6,15 +6,6 @@
  * Licensed under the MIT license.
  */
 
-// 1. try to create a tag for new version
-// 2. update package.json and bower.json
-// 3. commit them into master
-// 4. checkout gh-pages
-// 5. merge it with master
-// 6. update current version tag
-// 7. push all into origin
-// 8. push a new tag to origin
-
 var exec = require('child_process').exec;
 
 module.exports = function(grunt) {
@@ -61,18 +52,6 @@ module.exports = function(grunt) {
       grunt.file.write(filename, JSON.stringify(json, null, 2));
     }
 
-    grunt.registerTask('runShell', function(cmd) {
-      var cb = this.async();
-      var cp = exec(cmd, function(err) {
-        if (err) grunt.warn(err);
-
-        cb();
-      }.bind(this));
-
-      cp.stdout.pipe(process.stdout);
-      cp.stderr.pipe(process.stderr);
-    });
-
     // 1. update package.json and bower.json
     updateJSON('package.json');
     updateJSON('bower.json');
@@ -101,10 +80,16 @@ module.exports = function(grunt) {
       });
     });
 
-    grunt.task.run([
-      'runShell:' + updateBranches,
-      'runShell:bower update',
-      'runShell:' + finishBranches
-    ]);
+    // 3. update GIT and push all changes into remote repo
+    var cb = this.async();
+    var cmd = updateBranches + ' && bower update && ' + finishBranches;
+    var cp = exec(cmd, function(err) {
+      if (err) grunt.warn(err);
+
+      cb();
+    });
+
+    cp.stdout.pipe(process.stdout);
+    cp.stderr.pipe(process.stderr);
   });
 };
